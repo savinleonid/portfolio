@@ -7,6 +7,6 @@ students = {'Johnny', 'Bilbo', 'Steve', 'Khendrik', 'Aaron'}
 students = list(students)  # revert to list for accessibility
 students.sort()  # sort alphabetically
 grades = map(truediv, list(map(sum, grades)), list(map(len, grades)))  # find mean of sublists and reassign to grades
-dict_grades = dict(zip(students, grades))  # zip list and map dict
+dict_grades = dict(zip(students, grades))  # zip list and map to dict
 
 print(dict_grades)
