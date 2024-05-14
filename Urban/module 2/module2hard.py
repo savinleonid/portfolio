@@ -3,7 +3,7 @@ def decipher(num: int):
     Decipher.
     Finds corresponding password solution for final additional homework module 2.
     Takes integer from 3 to 20 and returns concatenated password string of unique pairs that sum of each
-    is equal to given number.
+    is equal to subdivides of given number.
 
     :param num: int
     :return str:
@@ -13,7 +13,7 @@ def decipher(num: int):
         password = []  # unique pairs will store here before concatenation
         for i in range(1, num):  # first literal of pair. We don't want it to start with '0' so start from 1
             for j in range(i, num):  # second literal of pair. Start iterating from first literal to get uniqueness
-                if i + j == num:  # check for summation condition
+                if num % (i + j) == 0 and (i != j):  # check for subdivision condition
                     password.append(str(i) + str(j))  # store concatenated pair in list
 
         return str.join("", password)  # convert list values to string
