@@ -215,6 +215,10 @@ def test():
 
 
 if __name__ == "__main__":
+    logging.basicConfig(filename=".log.txt",
+                        level=logging.DEBUG,
+                        format='%(asctime)s %(levelname)-8s %(message)s',
+                        datefmt='%Y-%m-%d %H:%M:%S')
     test()
 
 # long buy response to user socket
