@@ -6,18 +6,26 @@ start this script.
 
 Communicates with Binance endpoints
 """
+
+# TODO: prevent starting before other streams initialized
+
 import pprint
+from copy import deepcopy
 import sys
 import os
 import logging
 import threading
+from threading import Lock
 import time
 from typing import List
-
+import numpy as np
 import pandas as pd
+from talib import EMA
 
 from binance import Client, ThreadedWebsocketManager
 from binance.enums import HistoricalKlinesType, KLINE_INTERVAL_3MINUTE, FuturesType, ContractType
+
+from utils.helpers import hist
 
 
 class Candle:
@@ -44,18 +52,22 @@ class BinanceStreamManager:
         self.account_update = []  # entry, quantity, commission
         self.account = None
         self.stream_name = None
-        self._twm = None
+        self.twm = None
         self.client: Client = Client()
         self._API_KEY = os.environ['BINANCE_API_KEY']
         self._SECRET_KEY = os.environ['BINANCE_SECRET_KEY']
         self.STARTTIME = '24 hour ago UTC'
         self.INTERVAL = KLINE_INTERVAL_3MINUTE
         self.SYMBOL = "DYDXUSDT"
+        self.FAST_EMA = 7
+        self.SLOW_EMA = 25
+        self.VERY_SLOW_EMA = 99
         self.data: List[Candle] = []
         self.current_candle: Candle = Candle()
         self.interval_candle: Candle = Candle()
         self.streams = {}
         self._is_connected = True
+        self.lock = Lock()
         self.connect()
 
     def connect(self):
@@ -84,14 +96,14 @@ class BinanceStreamManager:
 
     def start(self):
         try:
-            self._twm = ThreadedWebsocketManager(api_key=self._API_KEY, api_secret=self._SECRET_KEY,
-                                                 session_params={"trust_env": "True"})
-            self._twm.start()
-            # self.stream_name = self._twm.start_kline_futures_socket(self.handle_socket_message, self.SYMBOL,
-            #                                                         self.INTERVAL,
-            #                                                         FuturesType.USD_M, ContractType.PERPETUAL)
+            self.twm = ThreadedWebsocketManager(api_key=self._API_KEY, api_secret=self._SECRET_KEY,
+                                                session_params={"trust_env": "True"})
+            self.twm.start()
+            # self.stream_name = self.twm.start_kline_futures_socket(self.handle_socket_message, self.SYMBOL,
+            #                                                        self.INTERVAL,
+            #                                                        FuturesType.USD_M, ContractType.PERPETUAL)
             # self.run_socket(self.SYMBOL)
-            self.account = self._twm.start_futures_user_socket(self.handle_futures_user_socket)
+            self.account = self.twm.start_futures_user_socket(self.handle_futures_user_socket)
         except Exception as e:
             logging.debug(f"[STREAM FAILED]: {e}")
             logging.debug(f"{e.args}")
@@ -100,22 +112,29 @@ class BinanceStreamManager:
         print("Streaming started")
 
     def run_socket(self, symbol):
-        self.stream_name = self._twm.start_kline_futures_socket(self.handle_socket_message, symbol,
-                                                                self.INTERVAL,
-                                                                FuturesType.USD_M, ContractType.PERPETUAL)
+        self.stream_name = self.twm.start_kline_futures_socket(self.handle_socket_message, symbol,
+                                                               self.INTERVAL,
+                                                               FuturesType.USD_M, ContractType.PERPETUAL)
         self.streams[symbol] = {
             "currentCandle": Candle(),
             "intervalCandle": Candle(),
-            "data": List[Candle]
+            "data": List[Candle],
+            "fast_ema": list,
+            "slow_ema": list,
+            "very_slow_ema": list,
+            "hist": list,
+            "status": int
         }
         self._init_data(symbol)
 
     def stop(self):
-        self._twm.stop()
+        self.twm.stop()
         print("Streaming closed")
 
     def _init_data(self, symbol):
         data = []
+        close = []
+        close_array = np.array(1)
         historical_data = self.get_data_frame(symbol)
         for lineIndex in range(len(historical_data)):
             candle = Candle()
@@ -125,8 +144,15 @@ class BinanceStreamManager:
             candle.low = float(historical_data['low'][lineIndex])
             candle.close = float(historical_data['close'][lineIndex])
             data.append(candle)
-            self.streams[symbol]["data"] = data
-            # self.data.append(candle)
+            close.append(candle.close)
+            close_array = np.array(close)
+        self.streams[symbol]["data"] = data
+        self.streams[symbol]["close"] = close
+        self.streams[symbol]["fast_ema"] = list(EMA(close_array, self.FAST_EMA))
+        self.streams[symbol]["slow_ema"] = list(EMA(close_array, self.SLOW_EMA))
+        self.streams[symbol]["very_slow_ema"] = list(EMA(close_array, self.VERY_SLOW_EMA))
+        self.streams[symbol]["hist"] = hist(list(EMA(close_array, self.VERY_SLOW_EMA)))
+        # self.data.append(candle)
 
     def start_restart_listener(self):
         sec_past = 0
@@ -155,9 +181,10 @@ class BinanceStreamManager:
             ]
 
     def handle_socket_message(self, msg):
+        # self.lock.acquire()
         if msg['e'] == 'error':
             print(f"{msg['m']}")
-            self._twm.stop()
+            self.twm.stop()
             self._is_connected = False
 
         elif bool(msg['k']['x']):
@@ -166,17 +193,26 @@ class BinanceStreamManager:
             self.current_candle.high = float(msg['k']['h'])
             self.current_candle.low = float(msg['k']['l'])
             self.current_candle.close = float(msg['k']['c'])
-            self.streams[msg['ps']]['currentCandle'] = self.current_candle
+            self.streams[msg['ps']]['currentCandle'] = deepcopy(self.current_candle)
 
             self.streams[msg['ps']]['data'].pop(0)
-            self.streams[msg['ps']]['data'].append(self.current_candle)
+            self.streams[msg['ps']]['data'].append(deepcopy(self.current_candle))
+
+            self.streams[msg['ps']]['close'].pop(0)
+            self.streams[msg['ps']]['close'].append(deepcopy(self.current_candle.close))
+
+            self.streams[msg['ps']]['fast_ema'] = list(EMA(np.array(self.streams[msg['ps']]['close']), self.FAST_EMA))
+            self.streams[msg['ps']]['slow_ema'] = list(EMA(np.array(self.streams[msg['ps']]['close']), self.SLOW_EMA))
+            self.streams[msg['ps']]['very_slow_ema'] = list(EMA(np.array(self.streams[msg['ps']]['close']), self.VERY_SLOW_EMA))
+            self.streams[msg['ps']]["hist"] = hist(list(EMA(np.array(self.streams[msg['ps']]['close']), self.VERY_SLOW_EMA)))
         else:
             self.current_candle.timestamp = float(msg['E']) // 1000
             self.current_candle.open = float(msg['k']['o'])
             self.current_candle.high = float(msg['k']['h'])
             self.current_candle.low = float(msg['k']['l'])
             self.current_candle.close = float(msg['k']['c'])
-            self.streams[msg['ps']]['currentCandle'] = self.current_candle
+            self.streams[msg['ps']]['currentCandle'] = deepcopy(self.current_candle)
+        # self.lock.release()
 
     def get_data_frame(self, pair):
         """
