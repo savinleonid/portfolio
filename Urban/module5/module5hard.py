@@ -50,13 +50,16 @@ class UrTube:
         :param login: Nickname used on registration
         :param password: Password used on registration
         """
+        is_invalid = True
         for user in self.users:
             # check for user and password match
             # string passwords needs to be encoded first
             if user.nickname == login and bcrypt.checkpw(bytes(password.encode("utf-8")), user.password):
                 self.current_user = user
-            else:
-                print("Invalid credentials")
+                is_invalid = False
+                break
+        if is_invalid:
+            print("Invalid credentials")
 
     def register(self, nickname: str, password: str, age: int):
         """
@@ -67,7 +70,7 @@ class UrTube:
         :param age:
         """
         # check for existing account:
-        if nickname not in self.users:
+        if nickname not in str(self.users):
             # string password needs to be encoded first
             hashed = bcrypt.hashpw(bytes(password.encode("utf-8")), bcrypt.gensalt(rounds=self._WORK_FACTOR))
             user = User(nickname, hashed, age)
@@ -148,3 +151,6 @@ ur.watch_video('Why do girls need a programmer guy?')
 # login to another account test
 ur.register('vasya_pupkin', 'F8098FM8fjm9jmi', 55)
 print(ur.current_user)
+
+# Try to open non-existing video
+ur.watch_video('Best programming language in 2024!')
