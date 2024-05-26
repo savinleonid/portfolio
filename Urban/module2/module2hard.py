@@ -1,7 +1,7 @@
 def decipher(num: int):
     """
     Decipher.
-    Finds corresponding password solution for final additional homework module 2.
+    Finds corresponding password solution for final additional homework module2.
     Takes integer from 3 to 20 and returns concatenated password string of unique pairs that sum of each
     is equal to subdivides of given number.
 
