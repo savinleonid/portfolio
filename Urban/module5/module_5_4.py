@@ -12,5 +12,4 @@ class Building:
 buildings = []
 for _ in range(40):
     buildings.append(Building())
-
-print(Building.total)
+    print(buildings[-1])
