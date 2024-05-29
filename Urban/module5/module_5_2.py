@@ -3,12 +3,12 @@
 
 class House:
     def __init__(self):  # initialisation
-        self.number_of_floors = 0
+        self._number_of_floors = 0
 
-    def set_new_number_of_floors(self, floors: int):
+    def set_new_number_of_floors(self, floors: int) -> None:
         """
         Sets new floor number and prints it
         :param floors: int
         """
-        self.number_of_floors = floors
-        print(self.number_of_floors)
+        self._number_of_floors = floors
+        print(self._number_of_floors)
