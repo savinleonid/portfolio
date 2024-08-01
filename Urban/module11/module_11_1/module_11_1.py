@@ -7,7 +7,8 @@ Run setup.py first to make this magic work :)'
     Make sure to add 'BINANCE_API_KEY' and 'BINANCE_SECRET_KEY' variables to your system or user PATH before
  starting this script.
 
-Communicates with Binance Api endpoints via 'python-binance' library.
+Communicates with Binance Api endpoints via 'python-binance' library. Fetches by default BTCUSDT pairs close
+price for last hour interval, finds maximum price and plots it on a graph.
 """
 import datetime
 import os
