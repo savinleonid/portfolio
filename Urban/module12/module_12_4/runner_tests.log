@@ -1,0 +1,16 @@
+2024-08-06 18:53:48 | WARNING: Incorrect data type for Runner
+Traceback (most recent call last):
+  File "C:\Users\Leo\PycharmProjects\Portfolio\Urban\module12\module_12_4\tests_12_4.py", line 31, in test_run
+    runner = Runner(123)
+             ^^^^^^^^^^^
+  File "C:\Users\Leo\PycharmProjects\Portfolio\Urban\module12\module_12_4\rt_with_exceptions.py", line 6, in __init__
+    raise TypeError(f'Имя может быть только числом, передано {type(name).__name__}')
+TypeError: Имя может быть только числом, передано int
+2024-08-06 18:53:48 | WARNING: Incorrect speed for Runner
+Traceback (most recent call last):
+  File "C:\Users\Leo\PycharmProjects\Portfolio\Urban\module12\module_12_4\tests_12_4.py", line 21, in test_walk
+    runner = Runner("Leonid", -5)
+             ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Leo\PycharmProjects\Portfolio\Urban\module12\module_12_4\rt_with_exceptions.py", line 11, in __init__
+    raise ValueError(f'Скорость не может быть отрицательной, сейчас {speed}')
+ValueError: Скорость не может быть отрицательной, сейчас -5
