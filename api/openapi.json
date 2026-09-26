@@ -1,0 +1,79 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Leonid Dev Portfolio API",
+    "version": "1.0.0",
+    "description": "Демонстрационный REST API для портфолио: проекты, технологии и заявки на разработку."
+  },
+  "servers": [
+    { "url": "https://api.example.com", "description": "Пример production-адреса" }
+  ],
+  "paths": {
+    "/health": {
+      "get": {
+        "summary": "Проверка доступности сервиса",
+        "responses": {
+          "200": {
+            "description": "Сервис доступен",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Health" } } }
+          }
+        }
+      }
+    },
+    "/v1/projects": {
+      "get": {
+        "summary": "Список проектов",
+        "parameters": [
+          { "name": "platform", "in": "query", "schema": { "type": "string", "enum": ["android", "ios", "web"] }, "description": "Фильтр по платформе" }
+        ],
+        "responses": {
+          "200": {
+            "description": "Проекты найдены",
+            "content": { "application/json": { "schema": { "type": "array", "items": { "$ref": "#/components/schemas/Project" } } } }
+          }
+        }
+      }
+    },
+    "/v1/contact-requests": {
+      "post": {
+        "summary": "Отправить заявку на разработку",
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ContactRequest" } } }
+        },
+        "responses": {
+          "201": { "description": "Заявка принята" },
+          "422": { "description": "Ошибка валидации" }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Health": {
+        "type": "object",
+        "properties": { "status": { "type": "string", "example": "ok" }, "timestamp": { "type": "string", "format": "date-time" } }
+      },
+      "Project": {
+        "type": "object",
+        "required": ["id", "name", "platforms", "stack"],
+        "properties": {
+          "id": { "type": "string", "example": "kayra-ai" },
+          "name": { "type": "string", "example": "Kayra AI" },
+          "platforms": { "type": "array", "items": { "type": "string" }, "example": ["web"] },
+          "stack": { "type": "array", "items": { "type": "string" }, "example": ["React", "FastAPI", "PostgreSQL"] }
+        }
+      },
+      "ContactRequest": {
+        "type": "object",
+        "required": ["name", "email", "message"],
+        "properties": {
+          "name": { "type": "string", "example": "Анна Иванова" },
+          "email": { "type": "string", "format": "email", "example": "anna@example.com" },
+          "message": { "type": "string", "example": "Нужна разработка мобильного приложения." },
+          "budget": { "type": "integer", "example": 250000 }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>API Demo — Леонид Савин</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui.css">
+  <style>body{margin:0;background:#f5f8fc}.top{padding:22px 5%;background:#10192d;color:#fff;font-family:Arial,sans-serif}.top a{color:#8ee6df;text-decoration:none}.top p{margin:8px 0 0;color:#c7d4e8}.swagger-ui{max-width:1200px;margin:0 auto}</style>
+</head>
+<body>
+  <header class="top"><a href="index.html">← К портфолио</a><h1>API demo</h1><p>Интерактивная OpenAPI-документация демонстрационного REST API.</p></header>
+  <div id="swagger-ui"></div>
+  <script src="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
+  <script>
+    const spec={
+      openapi:'3.0.3',
+      info:{title:'Leonid Dev Portfolio API',version:'1.0.0',description:'Демонстрационный REST API для портфолио: проекты, технологии и заявки на разработку.'},
+      servers:[{url:'https://api.example.com',description:'Пример production-адреса'}],
+      paths:{
+        '/health':{get:{summary:'Проверка доступности сервиса',responses:{'200':{description:'Сервис доступен',content:{'application/json':{schema:{$ref:'#/components/schemas/Health'}}}}}}},
+        '/v1/projects':{get:{summary:'Список проектов',parameters:[{name:'platform',in:'query',schema:{type:'string',enum:['android','ios','web']},description:'Фильтр по платформе'}],responses:{'200':{description:'Проекты найдены',content:{'application/json':{schema:{type:'array',items:{$ref:'#/components/schemas/Project'}}}}}}}},
+        '/v1/contact-requests':{post:{summary:'Отправить заявку на разработку',requestBody:{required:true,content:{'application/json':{schema:{$ref:'#/components/schemas/ContactRequest'}}}},responses:{'201':{description:'Заявка принята'},'422':{description:'Ошибка валидации'}}}}
+      },
+      components:{schemas:{
+        Health:{type:'object',properties:{status:{type:'string',example:'ok'},timestamp:{type:'string',format:'date-time'}}},
+        Project:{type:'object',required:['id','name','platforms','stack'],properties:{id:{type:'string',example:'kayra-ai'},name:{type:'string',example:'Kayra AI'},platforms:{type:'array',items:{type:'string'},example:['web']},stack:{type:'array',items:{type:'string'},example:['React','FastAPI','PostgreSQL']}}},
+        ContactRequest:{type:'object',required:['name','email','message'],properties:{name:{type:'string',example:'Анна Иванова'},email:{type:'string',format:'email',example:'anna@example.com'},message:{type:'string',example:'Нужна разработка мобильного приложения.'},budget:{type:'integer',example:250000}}}
+      }}
+    };
+    SwaggerUIBundle({spec,dom_id:'#swagger-ui',deepLinking:true,presets:[SwaggerUIBundle.presets.apis]});
+  </script>
+</body>
+</html>
