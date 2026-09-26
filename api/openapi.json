@@ -6,7 +6,7 @@
     "description": "Демонстрационный REST API для портфолио: проекты, технологии и заявки на разработку."
   },
   "servers": [
-    { "url": "https://api.example.com", "description": "Пример production-адреса" }
+    { "url": "https://leonid-portfolio-api.leonid-savin-api.workers.dev", "description": "Рабочий demo API на Cloudflare Workers" }
   ],
   "paths": {
     "/health": {

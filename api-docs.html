@@ -15,7 +15,7 @@
     const spec={
       openapi:'3.0.3',
       info:{title:'Leonid Dev Portfolio API',version:'1.0.0',description:'Демонстрационный REST API для портфолио: проекты, технологии и заявки на разработку.'},
-      servers:[{url:'https://api.example.com',description:'Пример production-адреса'}],
+      servers:[{url:'https://leonid-portfolio-api.leonid-savin-api.workers.dev',description:'Рабочий demo API на Cloudflare Workers'}],
       paths:{
         '/health':{get:{summary:'Проверка доступности сервиса',responses:{'200':{description:'Сервис доступен',content:{'application/json':{schema:{$ref:'#/components/schemas/Health'}}}}}}},
         '/v1/projects':{get:{summary:'Список проектов',parameters:[{name:'platform',in:'query',schema:{type:'string',enum:['android','ios','web']},description:'Фильтр по платформе'}],responses:{'200':{description:'Проекты найдены',content:{'application/json':{schema:{type:'array',items:{$ref:'#/components/schemas/Project'}}}}}}}},
